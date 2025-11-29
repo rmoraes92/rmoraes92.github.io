@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>MyBlog</title>
+</head>
+
+<body>
+  <section class="section">
+    <div class="container">
+      
+<h1 class="title">
+  Creating Custom GitHub Actions
+</h1>
+<p class="subtitle"><strong>2025-11-28T00:00:00-03:00</strong></p>
+<h2 id="creating-a-new-action-to-install-setup-nushell">Creating a new Action to install (setup) nushell</h2>
+<p>Since I recently fell in love with <a href="https://www.nushell.sh">nushell</a> it makes
+sense to have this available on my workflows.</p>
+<h3 id="composite-workflows">Composite Workflows</h3>
+<p>This kinde of action will perform action using the base image you have set
+in your workflow.</p>
+<p>Example of a simple <strong>Workflow</strong> using the <strong>latest ubuntu</strong> image as the
+base environment to execute a <strong>nushell</strong> script that handles the test
+execution routines.</p>
+<pre data-lang="yaml" style="background-color:#2b303b;color:#c0c5ce;" class="language-yaml "><code class="language-yaml" data-lang="yaml"><span style="color:#65737e;"># .github/workflows/running_ci_routines.yml @ https://github.com/JaneDoe82/my-new-app
+</span><span style="color:#bf616a;">name</span><span>: </span><span style="color:#a3be8c;">running ci routines
+</span><span style="color:#d08770;">on</span><span>: [</span><span style="color:#a3be8c;">push</span><span>]
+</span><span style="color:#bf616a;">jobs</span><span>:
+</span><span>  </span><span style="color:#bf616a;">running_tests</span><span>:
+</span><span>    </span><span style="color:#bf616a;">runs-on</span><span>: </span><span style="color:#a3be8c;">ubuntu-latest
+</span><span>    </span><span style="color:#bf616a;">steps</span><span>:
+</span><span>      - </span><span style="color:#bf616a;">uses</span><span>: </span><span style="color:#a3be8c;">actions/checkout@v5
+</span><span>
+</span><span>      - </span><span style="color:#bf616a;">name</span><span>: </span><span style="color:#a3be8c;">Running Test Routines
+</span><span>        </span><span style="color:#bf616a;">run</span><span>: </span><span style="color:#a3be8c;">nu testing.nu
+</span></code></pre>
+<p>On the current set of steps the last one (<code>Running Test Routines</code>) will fail
+since nushell does not come installed by default.</p>
+<p>If you try to install it by <code>sudo apt install -y nushell</code> it won't work since
+nushell is not a core package as well.</p>
+<p>For that to work we need to <strong>setup the apt repositories</strong>:</p>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#bf616a;">wget -qO-</span><span> https://apt.fury.io/nushell/gpg.key | \
+</span><span>  </span><span style="color:#bf616a;">sudo</span><span> gpg</span><span style="color:#bf616a;"> --dearmor -o</span><span> /etc/apt/keyrings/fury-nushell.gpg
+</span><span>
+</span><span style="color:#96b5b4;">echo </span><span>&quot;</span><span style="color:#a3be8c;">deb [signed-by=/etc/apt/keyrings/fury-nushell.gpg] https://apt.fury.io/nushell/ /</span><span>&quot; | \
+</span><span>  </span><span style="color:#bf616a;">sudo</span><span> tee /etc/apt/sources.list.d/fury.list
+</span></code></pre>
+<p>and then</p>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#bf616a;">sudo</span><span> apt update &amp;&amp;  </span><span style="color:#bf616a;">apt</span><span> install nushell
+</span></code></pre>
+<p>Since we are going to make use of that on other projects we will set this as
+a reusable <strong>Action</strong>.</p>
+<p>First we will create new repo: https://github.com/JaneDoe/setup-nushell and
+then create a new <code>action.yml</code> at the root:</p>
+<pre data-lang="yaml" style="background-color:#2b303b;color:#c0c5ce;" class="language-yaml "><code class="language-yaml" data-lang="yaml"><span style="color:#65737e;"># action.yml @ https://github.com/JaneDoe/setup-nushell
+</span><span style="color:#bf616a;">name</span><span>: &#39;</span><span style="color:#a3be8c;">Setup Nushell</span><span>&#39;
+</span><span style="color:#bf616a;">description</span><span>: &#39;</span><span style="color:#a3be8c;">Installing Nushell using the official tutorial</span><span>&#39;
+</span><span style="color:#bf616a;">runs</span><span>:
+</span><span>  </span><span style="color:#bf616a;">using</span><span>: &quot;</span><span style="color:#a3be8c;">composite</span><span>&quot;
+</span><span>  </span><span style="color:#bf616a;">steps</span><span>:
+</span><span>    - </span><span style="color:#bf616a;">name</span><span>: </span><span style="color:#a3be8c;">Setup Repositories
+</span><span>      </span><span style="color:#bf616a;">run</span><span>: </span><span style="color:#b48ead;">|
+</span><span style="color:#a3be8c;">        wget -qO- https://apt.fury.io/nushell/gpg.key | \
+</span><span style="color:#a3be8c;">          sudo gpg --dearmor -o /etc/apt/keyrings/fury-nushell.gpg
+</span><span style="color:#a3be8c;">        echo &quot;deb [signed-by=/etc/apt/keyrings/fury-nushell.gpg] https://apt.fury.io/nushell/ /&quot; | \
+</span><span style="color:#a3be8c;">          sudo tee /etc/apt/sources.list.d/fury.list
+</span><span style="color:#a3be8c;">
+</span><span>    - </span><span style="color:#bf616a;">name</span><span>: </span><span style="color:#a3be8c;">Installing Nushell
+</span><span>      </span><span style="color:#bf616a;">run</span><span>: </span><span style="color:#b48ead;">|
+</span><span style="color:#a3be8c;">        sudo apt update &amp;&amp;  apt install nushell
+</span></code></pre>
+<p>Once you finish pushing <code>action.yml</code> to the new repo <strong>JaneDoe/setup-nushell</strong>
+you need to also set a tag. Recommend using <a href="https://semver.org/">semver pattern</a></p>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#bf616a;">git</span><span> tag v0.1.0
+</span><span style="color:#bf616a;">git</span><span> push</span><span style="color:#bf616a;"> --tags</span><span>`
+</span></code></pre>
+<p>Now we can adjust our original <strong>Workflow</strong>:</p>
+<pre data-lang="yaml" style="background-color:#2b303b;color:#c0c5ce;" class="language-yaml "><code class="language-yaml" data-lang="yaml"><span style="color:#65737e;"># .github/workflows/running_ci_routines.yml @ https://github.com/JaneDoe82/my-new-app
+</span><span style="color:#bf616a;">name</span><span>: </span><span style="color:#a3be8c;">running ci routines
+</span><span style="color:#d08770;">on</span><span>: [</span><span style="color:#a3be8c;">push</span><span>]
+</span><span style="color:#bf616a;">jobs</span><span>:
+</span><span>  </span><span style="color:#bf616a;">running_tests</span><span>:
+</span><span>    </span><span style="color:#bf616a;">runs-on</span><span>: </span><span style="color:#a3be8c;">ubuntu-latest
+</span><span>    </span><span style="color:#bf616a;">steps</span><span>:
+</span><span>      - </span><span style="color:#bf616a;">uses</span><span>: </span><span style="color:#a3be8c;">actions/checkout@v5
+</span><span>
+</span><span>      - </span><span style="color:#bf616a;">uses</span><span>: </span><span style="color:#a3be8c;">JaneDoe82/setup-nushell@v0.1.0
+</span><span>
+</span><span>      - </span><span style="color:#bf616a;">name</span><span>: </span><span style="color:#a3be8c;">Running Test Routines
+</span><span>        </span><span style="color:#bf616a;">run</span><span>: </span><span style="color:#a3be8c;">nu testing.nu
+</span></code></pre>
+<h2 id="how-do-i-use-a-private-repository-as-an-action">How do I use a private repository as an Action?</h2>
+<p>Navigate to: Settings &gt; Actions &gt; General</p>
+<p>and then scroll down to the <strong>Access</strong> section and select
+whichever option fits better for your privacy scenario.</p>
+
+
+    </div>
+  </section>
+</body>
+
+</html>
