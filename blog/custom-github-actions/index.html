@@ -1,23 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="utf-8">
-  <title>MyBlog</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <style>
+        pre {
+            padding: 16px;
+        }
+    </style>
+    <title>9th Inning Thoughts - </title>
 </head>
-
 <body>
-  <section class="section">
     <div class="container">
-      
-<h1 class="title">
-  Creating Custom GitHub Actions
-</h1>
-<p class="subtitle"><strong>2025-11-28T00:00:00-03:00</strong></p>
-<h2 id="creating-a-new-action-to-install-setup-nushell">Creating a new Action to install (setup) nushell</h2>
+        <div class="row">
+            <div class="col-12">
+                <h1 class="title text-center">
+                    <a href="/">9th Inning Thoughts</a>
+                    <br>
+                    <small class="text-body-secondary">When the bases are full a single bunt will suffice</small>
+                </h1>
+                <hr>
+                <ul class="nav justify-content-center">
+                    <li class="nav-item">
+                        <a class="nav-link" href="http://rmoraes92.github.io/blog/">
+                            Blog
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a target="_blank" class="nav-link" aria-current="page" href="https://www.linkedin.com/in/ramonmoraes8080/">
+                            About
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a target="_blank" class="nav-link" href="https://github.com/rmoraes92">
+                            GitHub
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <br>
+        
+<div class="row">
+    <div class="col-12 text-center">
+        <h1 class="title">
+            Creating Custom GitHub Actions
+        </h1>
+        <small class="text-body-secondary">
+            <em>2025-11-28T00:00:00-03:00</em>
+        </small>
+    </div>
+</div>
+<br>
+<br>
+<h3 id="creating-a-new-action-to-install-setup-nushell">Creating a new Action to install (setup) nushell</h3>
 <p>Since I recently fell in love with <a href="https://www.nushell.sh">nushell</a> it makes
 sense to have this available on my workflows.</p>
-<h3 id="composite-workflows">Composite Workflows</h3>
+<h3 id="composite-workflows"><a href="https://docs.github.com/en/actions/tutorials/create-actions/create-a-composite-action">Composite Workflows</a></h3>
 <p>This kinde of action will perform action using the base image you have set
 in your workflow.</p>
 <p>Example of a simple <strong>Workflow</strong> using the <strong>latest ubuntu</strong> image as the
@@ -54,12 +96,13 @@ a reusable <strong>Action</strong>.</p>
 <p>First we will create new repo: https://github.com/JaneDoe/setup-nushell and
 then create a new <code>action.yml</code> at the root:</p>
 <pre data-lang="yaml" style="background-color:#2b303b;color:#c0c5ce;" class="language-yaml "><code class="language-yaml" data-lang="yaml"><span style="color:#65737e;"># action.yml @ https://github.com/JaneDoe/setup-nushell
-</span><span style="color:#bf616a;">name</span><span>: &#39;</span><span style="color:#a3be8c;">Setup Nushell</span><span>&#39;
-</span><span style="color:#bf616a;">description</span><span>: &#39;</span><span style="color:#a3be8c;">Installing Nushell using the official tutorial</span><span>&#39;
+</span><span style="color:#bf616a;">name</span><span>: &quot;</span><span style="color:#a3be8c;">Setup Nushell</span><span>&quot;
+</span><span style="color:#bf616a;">description</span><span>: &quot;</span><span style="color:#a3be8c;">Installing Nushell through APT Repositories</span><span>&quot;
 </span><span style="color:#bf616a;">runs</span><span>:
 </span><span>  </span><span style="color:#bf616a;">using</span><span>: &quot;</span><span style="color:#a3be8c;">composite</span><span>&quot;
 </span><span>  </span><span style="color:#bf616a;">steps</span><span>:
 </span><span>    - </span><span style="color:#bf616a;">name</span><span>: </span><span style="color:#a3be8c;">Setup Repositories
+</span><span>      </span><span style="color:#bf616a;">shell</span><span>: </span><span style="color:#a3be8c;">bash
 </span><span>      </span><span style="color:#bf616a;">run</span><span>: </span><span style="color:#b48ead;">|
 </span><span style="color:#a3be8c;">        wget -qO- https://apt.fury.io/nushell/gpg.key | \
 </span><span style="color:#a3be8c;">          sudo gpg --dearmor -o /etc/apt/keyrings/fury-nushell.gpg
@@ -67,8 +110,9 @@ then create a new <code>action.yml</code> at the root:</p>
 </span><span style="color:#a3be8c;">          sudo tee /etc/apt/sources.list.d/fury.list
 </span><span style="color:#a3be8c;">
 </span><span>    - </span><span style="color:#bf616a;">name</span><span>: </span><span style="color:#a3be8c;">Installing Nushell
+</span><span>      </span><span style="color:#bf616a;">shell</span><span>: </span><span style="color:#a3be8c;">bash
 </span><span>      </span><span style="color:#bf616a;">run</span><span>: </span><span style="color:#b48ead;">|
-</span><span style="color:#a3be8c;">        sudo apt update &amp;&amp;  apt install nushell
+</span><span style="color:#a3be8c;">        sudo apt update &amp;&amp;  apt install -y nushell
 </span></code></pre>
 <p>Once you finish pushing <code>action.yml</code> to the new repo <strong>JaneDoe/setup-nushell</strong>
 you need to also set a tag. Recommend using <a href="https://semver.org/">semver pattern</a></p>
@@ -90,14 +134,14 @@ you need to also set a tag. Recommend using <a href="https://semver.org/">semver
 </span><span>      - </span><span style="color:#bf616a;">name</span><span>: </span><span style="color:#a3be8c;">Running Test Routines
 </span><span>        </span><span style="color:#bf616a;">run</span><span>: </span><span style="color:#a3be8c;">nu testing.nu
 </span></code></pre>
-<h2 id="how-do-i-use-a-private-repository-as-an-action">How do I use a private repository as an Action?</h2>
+<h3 id="how-do-i-use-a-private-repository-as-an-action">How do I use a private repository as an Action?</h3>
 <p>Navigate to: Settings &gt; Actions &gt; General</p>
 <p>and then scroll down to the <strong>Access</strong> section and select
 whichever option fits better for your privacy scenario.</p>
 
 
-    </div>
-  </section>
-</body>
 
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+</body>
 </html>

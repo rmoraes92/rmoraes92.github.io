@@ -14,4 +14,12 @@
         <loc>http://rmoraes92.github.io/blog/first/</loc>
         <lastmod>2019-11-27</lastmod>
     </url>
+    <url>
+        <loc>http://rmoraes92.github.io/blog/platform-engineering-101/</loc>
+        <lastmod>2026-01-07T00:00:00-03:00</lastmod>
+    </url>
+    <url>
+        <loc>http://rmoraes92.github.io/blog/switching-ssh-private-key-based-on-folder-paths/</loc>
+        <lastmod>2026-02-08T00:00:00-03:00</lastmod>
+    </url>
 </urlset>
